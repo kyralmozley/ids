@@ -21,7 +21,7 @@ current_flows = {}
 terminated = []
 FlowTimeout = 600
 
-global X
+global X 
 global Y
 global normalisation
 global classifier
@@ -39,7 +39,8 @@ def classify(features):
 
     feature_string = [str(i) for i in f]
     classification = [str(result[0])]
-    print(feature_string + classification)
+    if result != 'Benign':
+        print(feature_string + classification)
     w.writerow(feature_string + classification)
 
     return feature_string + classification
