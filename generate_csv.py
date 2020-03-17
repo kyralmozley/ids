@@ -1,6 +1,8 @@
 import csv
+import datetime
 import glob
 import traceback
+from datetime import time
 
 import pandas as pd
 from scapy.sendrecv import sniff
@@ -10,6 +12,7 @@ from flow.Flow import Flow
 from flow.PacketInfo import PacketInfo
 
 import warnings
+
 warnings.filterwarnings("ignore")
 
 f = open("output.csv", 'w')
@@ -19,113 +22,198 @@ current_flows = {}
 terminated = []
 FlowTimeout = 600
 
-global labels
-global count
-
-def get_labels(csv_file):
-    global labels
-    path = 'MachineLearningCVE/'
-    all_files = glob.glob(path + csv_file + ".csv")
-    dataset = pd.concat((pd.read_csv(f, low_memory=False) for f in all_files))
-
-    col_names = ["Destination_Port",
-                 "Flow_Duration",
-                 "Total_Fwd_Packets",
-                 "Total_Backward_Packets",
-                 "Total_Length_of_Fwd_Packets",
-                 "Total_Length_of_Bwd_Packets",
-                 "Fwd_Packet_Length_Max",
-                 "Fwd_Packet_Length_Min",
-                 "Fwd_Packet_Length_Mean",
-                 "Fwd_Packet_Length_Std",
-                 "Bwd_Packet_Length_Max",
-                 "Bwd_Packet_Length_Min",
-                 "Bwd_Packet_Length_Mean",
-                 "Bwd_Packet_Length_Std",
-                 "Flow_Bytes_s",
-                 "Flow_Packets_s",
-                 "Flow_IAT_Mean",
-                 "Flow_IAT_Std",
-                 "Flow_IAT_Max",
-                 "Flow_IAT_Min",
-                 "Fwd_IAT_Total",
-                 "Fwd_IAT_Mean",
-                 "Fwd_IAT_Std",
-                 "Fwd_IAT_Max",
-                 "Fwd_IAT_Min",
-                 "Bwd_IAT_Total",
-                 "Bwd_IAT_Mean",
-                 "Bwd_IAT_Std",
-                 "Bwd_IAT_Max",
-                 "Bwd_IAT_Min",
-                 "Fwd_PSH_Flags",
-                 "Bwd_PSH_Flags",
-                 "Fwd_URG_Flags",
-                 "Bwd_URG_Flags",
-                 "Fwd_Header_Length",
-                 "Bwd_Header_Length",
-                 "Fwd_Packets_s",
-                 "Bwd_Packets_s",
-                 "Min_Packet_Length",
-                 "Max_Packet_Length",
-                 "Packet_Length_Mean",
-                 "Packet_Length_Std",
-                 "Packet_Length_Variance",
-                 "FIN_Flag_Count",
-                 "SYN_Flag_Count",
-                 "RST_Flag_Count",
-                 "PSH_Flag_Count",
-                 "ACK_Flag_Count",
-                 "URG_Flag_Count",
-                 "CWE_Flag_Count",
-                 "ECE_Flag_Count",
-                 "Down_Up_Ratio",
-                 "Average_Packet_Size",
-                 "Avg_Fwd_Segment_Size",
-                 "Avg_Bwd_Segment_Size",
-                 "Fwd_Header_Length",
-                 "Fwd_Avg_Bytes_Bulk",
-                 "Fwd_Avg_Packets_Bulk",
-                 "Fwd_Avg_Bulk_Rate",
-                 "Bwd_Avg_Bytes_Bulk",
-                 "Bwd_Avg_Packets_Bulk",
-                 "Bwd_Avg_Bulk_Rate",
-                 "Subflow_Fwd_Packets",
-                 "Subflow_Fwd_Bytes",
-                 "Subflow_Bwd_Packets",
-                 "Subflow_Bwd_Bytes",
-                 "Init_Win_bytes_forward",
-                 "Init_Win_bytes_backward",
-                 "act_data_pkt_fwd",
-                 "min_seg_size_forward",
-                 "Active_Mean",
-                 "Active_Std",
-                 "Active_Max",
-                 "Active_Min",
-                 "Idle_Mean",
-                 "Idle_Std",
-                 "Idle_Max",
-                 "Idle_Min",
-                 "Label"
-                 ]
-    dataset.columns = col_names
-    labels = dataset['Label']
+def monday_labels(flow):
+    return 'Benign'
 
 
-def output(features):
-    global count
+def tuesday_labels(flow):
+    victim_ip = '192.168.10.50'
+    attacker_ip = '172.16.0.1'
+
+    timezone = 4 * 3600
+    ftp_start_time = datetime.datetime(2017,7,4,9,10).timestamp()
+    # ftp_end_time = datetime.datetime(2017,7,4,10,20).timestamp()
+    ssh_start_time = datetime.datetime(2017,7,4,14,0).timestamp()
+    # sh_end_time = datetime.datetime(2017,7,4,15,0).timestamp()
+
+    p = flow.packetInfos[0]
+    startTime = flow.getFlowStartTime()
+    endTime = flow.flowLastSeen
+
+    #print(p.getSrc(), p.getDest(), startTime - timezone, ftp_start_time)
+    if p.getSrc() == victim_ip or p.getDest() == victim_ip:
+        if p.getSrc() == attacker_ip or p.getDest() == attacker_ip:
+
+            if (startTime - timezone) >= ftp_start_time and (endTime - timezone) < ssh_start_time:
+                return 'FTP-Patator'
+
+            if (startTime - timezone) >= ssh_start_time:
+                return 'SSH-Patator'
+
+    return 'Benign'
+
+def wednesday_labels(flow):
+    victim_ip = '192.168.10.50'
+    attacker_ip = '172.16.0.1'
+
+    timezone = 4 * 3600
+
+    dos_loris_start_time = datetime.datetime(2017, 7, 5, 9, 47).timestamp()
+    dos_loris_end_time = datetime.datetime(2017, 7, 5, 10, 10).timestamp()
+
+    dos_http_start_time = datetime.datetime(2017, 7, 5, 10, 14).timestamp()
+    dos_http_end_time = datetime.datetime(2017, 7, 5, 10, 35).timestamp()
+
+    dos_hulk_start_time = datetime.datetime(2017, 7, 5, 10, 43).timestamp()
+    dos_hulk_end_time = datetime.datetime(2017, 7, 5, 11, 0).timestamp()
+
+    dos_golden_start_time = datetime.datetime(2017, 7, 5, 11, 10).timestamp()
+    dos_golden_end_time = datetime.datetime(2017, 7, 5, 11, 23).timestamp()
+
+    p = flow.packetInfos[0]
+    startTime = flow.getFlowStartTime()
+    endTime = flow.flowLastSeen
+
+    # print(p.getSrc(), p.getDest(), startTime - timezone, dos_loris_start_time)
+    if p.getSrc() == victim_ip or p.getDest() == victim_ip:
+        if p.getSrc() == attacker_ip or p.getDest() == attacker_ip:
+
+            if (startTime - timezone) >= dos_loris_start_time and (endTime - timezone) < dos_http_start_time:
+                return 'DoS slowloris'
+
+            if (startTime - timezone) >= dos_http_start_time and (endTime - timezone) < dos_hulk_start_time:
+                return 'DoS Slowhttptest'
+
+            if (startTime - timezone) >= dos_hulk_start_time and (endTime - timezone) < dos_golden_start_time:
+                return 'DoS Hulk'
+
+            if (startTime - timezone) >= dos_golden_start_time:
+                return 'DoS GoldenEye'
+
+    return 'Benign'
+
+def thursday_labels(flow):
+    victim_ip = '192.168.10.50'
+    attacker_ip = '172.16.0.1'
+
+    timezone = 4 * 3600
+    brute_force_start_time = datetime.datetime(2017,7,6,9,20).timestamp()
+    brute_force_end_time = datetime.datetime(2017,7,6,10,0).timestamp()
+    xss_start_time = datetime.datetime(2017,7,6,10,15).timestamp()
+    xss_end_time = datetime.datetime(2017,7,6,10,35).timestamp()
+
+    p = flow.packetInfos[0]
+    startTime = flow.getFlowStartTime()
+    endTime = flow.flowLastSeen
+
+    print(p.getSrc(), p.getDest(), startTime - timezone, brute_force_start_time)
+    if p.getSrc() == victim_ip or p.getDest() == victim_ip:
+        if p.getSrc() == attacker_ip or p.getDest() == attacker_ip:
+            print("attack", startTime - timezone, brute_force_start_time, brute_force_end_time)
+
+            if (startTime - timezone) > brute_force_start_time and (endTime - timezone) < brute_force_end_time:
+                print('brute force')
+                return 'Brute Force'
+
+            if (startTime - timezone) > xss_start_time and (endTime - timezone) < xss_end_time:
+                print('xss')
+                return 'XSS'
+
+    return 'Benign'
+
+def friday_morning_labels(flow):
+    victim_1 = '192.168.10.15'
+    victim_2 = '192.168.10.9'
+    victim_3 = '192.168.10.14'
+    victim_4 = '192.168.10.8'
+    victim_5 = '192.168.10.50'
+    victim = [victim_1, victim_2, victim_3, victim_4, victim_5]
+
+    attacker_1 = '172.16.0.1'
+    attacker_2 = '205.174.165.80'
+    attacker_3 = '205.174.165.73'
+    attacker = [attacker_1, attacker_2, attacker_3]
+
+    timezone = 4 * 3600
+    botnet_start_time = datetime.datetime(2017,7,7,10,2).timestamp()
+    botnet_end_time = datetime.datetime(2017,7,7,11,2).timestamp()
+
+
+    p = flow.packetInfos[0]
+    startTime = flow.getFlowStartTime()
+    endTime = flow.flowLastSeen
+
+    if p.getSrc() in victim or p.getDest in victim:
+        if p.getSrc() in attacker or p.getDest() in attacker:
+            if (startTime - timezone) >= botnet_start_time and (endTime - timezone) < botnet_end_time:
+                return 'Bot'
+    return 'Benign'
+
+def friday_afternoon_port_labels(flow):
+    victim = '192.168.10.50'
+
+    attacker_1 = '172.16.0.1'
+    attacker_2 = '205.174.165.80'
+    attacker_3 = '205.174.165.73'
+    attacker = [attacker_1, attacker_2, attacker_3]
+
+    timezone = 4 * 3600
+    port_scan_start_time = datetime.datetime(2017,7,7,13,50).timestamp()
+    port_scan_end_time = datetime.datetime(2017,7,7,14,50).timestamp()
+
+
+    p = flow.packetInfos[0]
+    startTime = flow.getFlowStartTime()
+    endTime = flow.flowLastSeen
+
+    if p.getSrc() == victim or p.getDest == victim:
+        if p.getSrc() in attacker or p.getDest() in attacker:
+            if (startTime - timezone) >= port_scan_start_time and (endTime - timezone) < port_scan_end_time:
+                return 'PortScan'
+    return 'Benign'
+
+def friday_afternoon_ddos(flow):
+    victim_ip = '192.168.10.50'
+
+    attacker_1 = '172.16.0.1'
+    attacker_2 = '205.174.165.80'
+    attacker_3 = '205.174.165.69'
+    attacker_4 = '205.174.165.70'
+    attacker_5 = '205.174.165.71'
+    attackers = [attacker_1, attacker_2, attacker_3, attacker_4, attacker_5]
+
+    timezone = 4 * 3600
+    ddos_start_time = datetime.datetime(2017,7,7,15,50).timestamp()
+    ddos_end_time = datetime.datetime(2017,7,7,14,20).timestamp()
+
+
+    p = flow.packetInfos[0]
+    startTime = flow.getFlowStartTime()
+    endTime = flow.flowLastSeen
+
+    if p.getSrc() == victim_ip or p.getDest == victim_ip:
+        if p.getSrc() in attackers or p.getDest() in attackers:
+            if (startTime - timezone) >= ddos_start_time and (endTime - timezone) < ddos_end_time:
+                return 'DDoS'
+    return 'Benign'
+
+
+def output(features, flow):
     f = features
 
     feature_string = [str(i) for i in f]
-    classification = [str(labels[count])]
-    count = count + 1
-    print(feature_string + classification)
-    w.writerow(feature_string + classification)
+    classification = friday_morning_labels(flow)
+    if classification != 'Benign':
+        print(feature_string + [classification])
+    w.writerow(feature_string + [classification])
 
-    return feature_string + classification
+    return feature_string + [classification]
 
 
 def newPacket(p):
+    # for friday morn
+    if p.time > (datetime.datetime(2017,7,7,12,2).timestamp() + 4 * 3600):
+        return
     try:
         packet = PacketInfo()
         packet.setDest(p)
@@ -146,16 +234,13 @@ def newPacket(p):
         packet.setFwdID()
         packet.setBwdID()
 
-        #print(p[TCP].flags, packet.getFINFlag(), packet.getSYNFlag(), packet.getPSHFlag(), packet.getACKFlag(),packet.getURGFlag() )
-
         if packet.getFwdID() in current_flows.keys():
             flow = current_flows[packet.getFwdID()]
 
             # check for timeout
             # for some reason they only do it if packet count > 1
             if (packet.getTimestamp() - flow.getFlowStartTime()) > FlowTimeout:
-                if flow.packet_count > 1:
-                    output(flow.terminated())
+                output(flow.terminated(), flow)
                 del current_flows[packet.getFwdID()]
                 flow = Flow(packet)
                 current_flows[packet.getFwdID()] = flow
@@ -163,7 +248,7 @@ def newPacket(p):
             # check for fin flag
             elif packet.getFINFlag():
                 flow.new(packet, 'fwd')
-                output(flow.terminated())
+                output(flow.terminated(), flow)
                 del current_flows[packet.getFwdID()]
                 del flow
 
@@ -176,14 +261,14 @@ def newPacket(p):
 
             # check for timeout
             if (packet.getTimestamp() - flow.getFlowStartTime()) > FlowTimeout:
-                output(flow.terminated())
+                output(flow.terminated(), flow)
                 del current_flows[packet.getBwdID()]
                 flow = Flow(packet)
                 current_flows[packet.getFwdID()] = flow
 
             elif packet.getFINFlag():
                 flow.new(packet, 'bwd')
-                output(flow.terminated())
+                output(flow.terminated(), flow)
                 del current_flows[packet.getBwdID()]
                 del flow
             else:
@@ -200,19 +285,13 @@ def newPacket(p):
         traceback.print_exc()
 
 
-def main(pcap_file, csv_file):
-    global count
-    count = 0
-    get_labels(csv_file)
+def main(pcap_file):
     sniff(offline=pcap_file, prn=newPacket)
+    print('done')
+    for flow in current_flows.values():
+        output(flow.terminated(), flow)
 
-    for flow in current_flows:
-        output(flow.terminated())
-        del current_flows[flow.packetInfos[0].getFwdID()]
 
 if __name__ == '__main__':
     main()
     f.close()
-
-
-

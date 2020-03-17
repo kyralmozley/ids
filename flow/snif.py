@@ -18,7 +18,6 @@ f = open("output_logs.csv", 'w')
 w = csv.writer(f)
 
 current_flows = {}
-terminated = []
 FlowTimeout = 600
 
 global X 
@@ -77,6 +76,7 @@ def newPacket(p):
             if (packet.getTimestamp() - flow.getFlowStartTime()) > FlowTimeout:
                 if flow.packet_count > 1:
                     classify(flow.terminated())
+                    # TODO: not sure about this (shouldnt we indent the following?
                 del current_flows[packet.getFwdID()]
                 flow = Flow(packet)
                 current_flows[packet.getFwdID()] = flow
@@ -125,11 +125,15 @@ def live():
     print("Begin Sniffing".center(20, ' '))
     sniff(iface="en0", prn=newPacket)
     for f in current_flows.values():
-        terminated.append(f.terminated())
+        classify(f.terminated())
 
 
 def pcap(f):
     sniff(offline=f, prn=newPacket)
+    print('done')
+    print(len(current_flows.values()))
+    for flow in current_flows.values():
+        classify(flow.terminated())
 
 
 def main(mode, pcap_file):
