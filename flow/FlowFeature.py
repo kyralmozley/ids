@@ -3,8 +3,6 @@ class FlowFeatures:
         self.dest_port = 0
         self.flow_duration = 0
 
-        self.fwd_packet_len_min = 0
-
         self.bwd_packet_len_max = 0
         self.bwd_packet_len_min = 0
         self.bwd_packet_len_mean = 0
@@ -30,9 +28,7 @@ class FlowFeatures:
         self.fwd_PSH_flags = 0
 
         self.fwd_packets_s = 0
-        self.bwd_packets_s = 0
 
-        self.min_packet_len = 0
         self.max_packet_len = 0
         self.packet_len_mean = 0#have: 74, want 66.5
         self.packet_len_std = 0#have: 100, want 99.00183653
@@ -52,14 +48,12 @@ class FlowFeatures:
         self.init_win_bytes_forward = -1
         self.init_win_bytes_backward = -1#have: 8192, want 2053
 
-        self.active_mean = 0
-        self.active_std = 0
-        self.active_max = 0
         self.active_min = 0
 
         self.idle_mean = 0
         self.idle_std = 0
         self.idle_max = 0
+        self.idle_min = 0
 
     def getDestPort(self):
         return self.dest_port
@@ -72,12 +66,6 @@ class FlowFeatures:
 
     def setFlowDuration(self, value):
         self.flow_duration = int(round(value))
-
-    def getFwdPacketLenMin(self):
-        return self.fwd_packet_len_min
-
-    def setFwdPacketLenMin(self, value):
-        self.fwd_packet_len_min = value
 
     def getBwdPacketLenMax(self):
         return self.bwd_packet_len_max
@@ -199,18 +187,6 @@ class FlowFeatures:
     def setFwdPackets_s(self, value):
         self.fwd_packets_s = value
 
-    def getBwdPackets_s(self):
-        return self.bwd_packets_s
-
-    def setBwdPackets_s(self, value):
-        self.bwd_packets_s = value
-
-    def getMinPacketLen(self):
-        return self.min_packet_len
-
-    def setMinPacketLen(self, value):
-        self.min_packet_len = value
-
     def getMaxPacketLen(self):
         return self.max_packet_len
 
@@ -289,24 +265,6 @@ class FlowFeatures:
     def setInitWinBytesBwd(self, value):
         self.init_win_bytes_backward = value
 
-    def getActiveMean(self):
-        return self.active_mean
-
-    def setActiveMean(self, value):
-        self.active_mean = value
-
-    def getActiveStd(self):
-        return self.active_std
-
-    def setActiveStd(self, value):
-        self.active_std = value
-
-    def getActiveMax(self):
-        return self.active_max
-
-    def setActiveMax(self, value):
-        self.active_max = value
-
     def getActiveMin(self):
         return self.active_min
 
@@ -330,3 +288,9 @@ class FlowFeatures:
 
     def setIdleMax(self, value):
         self.idle_max = value
+
+    def getIdleMin(self):
+        return self.idle_min
+
+    def setIdleMin(self, value):
+        self.idle_min = value

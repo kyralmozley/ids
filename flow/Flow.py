@@ -13,9 +13,7 @@ class Flow:
 
         self.flowFeatures = FlowFeatures()
         self.flowFeatures.setDestPort(packet.getDestPort())
-        self.flowFeatures.setFwdPacketLenMin(packet.getPayloadBytes())
         self.flowFeatures.setFwdPSHFlags(0 if not packet.getURGFlag() else 1)
-        self.flowFeatures.setMinPacketLen(packet.getPayloadBytes())
         self.flowFeatures.setMaxPacketLen(packet.getPayloadBytes())
         self.flowFeatures.setPacketLenMean(packet.getPayloadBytes())
         self.flowFeatures.setFINFlagCount(1 if packet.getFINFlag() else 0)
@@ -68,15 +66,12 @@ class Flow:
 
         else:
             self.fwdPacketInfos.append(packetInfo)
-            self.flowFeatures.setFwdPacketLenMin(
-                min(self.flowFeatures.getFwdPacketLenMin(), packetInfo.getPayloadBytes()))
             self.fwdIAT.append((packetInfo.getTimestamp() - self.fwdLastSeen) * 1000 * 1000)
             self.flowFeatures.setFwdPSHFlags(max(1 if packetInfo.getURGFlag() else 0,
                                                  self.flowFeatures.getFwdPSHFlags()))
             self.fwd_packet_count = self.fwd_packet_count + 1
             self.fwdLastSeen = packetInfo.getTimestamp()
 
-        self.flowFeatures.setMinPacketLen(min(self.flowFeatures.getMinPacketLen(), packetInfo.getPayloadBytes()))
         self.flowFeatures.setMaxPacketLen(max(self.flowFeatures.getMaxPacketLen(), packetInfo.getPayloadBytes()))
 
         if packetInfo.getFINFlag():
@@ -139,7 +134,6 @@ class Flow:
                 self.flowFeatures.setBwdIATStd(statistics.stdev(self.bwdIAT))
 
         self.flowFeatures.setFwdPackets_s(0 if duration == 0 else self.fwd_packet_count / (duration / (1000 * 1000)))
-        self.flowFeatures.setBwdPackets_s(0 if duration == 0 else self.bwd_packet_count / (duration / (1000 * 1000)))
 
         packet_lens = [x.getPayloadBytes() for x in self.packetInfos]
         if len(packet_lens) > 0:
@@ -154,21 +148,17 @@ class Flow:
             self.flowFeatures.setAvgBwdSegmentSize(sum(bwd_packet_lens) / self.bwd_packet_count)
 
         if len(self.flowActive) > 0:
-            self.flowFeatures.setActiveMean(statistics.mean(self.flowActive))
-            self.flowFeatures.setActiveMax(max(self.flowActive))
             self.flowFeatures.setActiveMin(min(self.flowActive))
-            if len(self.flowActive) > 1:
-                self.flowFeatures.setActiveStd(statistics.stdev(self.flowActive))
 
         if len(self.flowIdle) > 0:
             self.flowFeatures.setIdleMean(statistics.mean(self.flowIdle))
             self.flowFeatures.setIdleMax(max(self.flowIdle))
+            self.flowFeatures.setIdleMin(min(self.flowIdle))
             if len(self.flowIdle) > 1:
                 self.flowFeatures.setIdleStd(statistics.stdev(self.flowIdle))
 
         return [self.flowFeatures.getDestPort(),
                 self.flowFeatures.getFlowDuration(),
-                self.flowFeatures.getFwdPacketLenMin(),
                 self.flowFeatures.getBwdPacketLenMax(),
                 self.flowFeatures.getBwdPacketLenMin(),
                 self.flowFeatures.getBwdPacketLenMean(),
@@ -189,8 +179,6 @@ class Flow:
                 self.flowFeatures.getBwdIATMin(),
                 self.flowFeatures.getFwdPSHFlags(),
                 self.flowFeatures.getFwdPackets_s(),
-                self.flowFeatures.getBwdPackets_s(),
-                self.flowFeatures.getMinPacketLen(),
                 self.flowFeatures.getMaxPacketLen(),
                 self.flowFeatures.getPacketLenMean(),
                 self.flowFeatures.getPacketLenStd(),
@@ -204,12 +192,10 @@ class Flow:
                 self.flowFeatures.getAvgBwdSegmentSize(),
                 self.flowFeatures.getInitWinBytesFwd(),
                 self.flowFeatures.getInitWinBytesBwd(),
-                self.flowFeatures.getActiveMean(),
-                self.flowFeatures.getActiveStd(),
-                self.flowFeatures.getActiveMax(),
                 self.flowFeatures.getActiveMin(),
                 self.flowFeatures.getIdleMean(),
                 self.flowFeatures.getIdleStd(),
-                self.flowFeatures.getIdleMax()
+                self.flowFeatures.getIdleMax(),
+                self.flowFeatures.getIdleMin()
 
                 ]

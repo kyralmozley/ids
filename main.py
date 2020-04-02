@@ -2,7 +2,8 @@
 Main class, initalize everything, and then hand over to sniffer & machine learning model
 '''
 import generate_csv
-from flow import snif
+import snif
+
 
 def create_csv():
     pcap_file = 'PCAP/Friday-WorkingHours.pcap'
@@ -19,4 +20,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    create_csv()

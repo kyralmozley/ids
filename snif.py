@@ -74,15 +74,13 @@ def newPacket(p):
             # check for timeout
             # for some reason they only do it if packet count > 1
             if (packet.getTimestamp() - flow.getFlowStartTime()) > FlowTimeout:
-                if flow.packet_count > 1:
-                    classify(flow.terminated())
-                    # TODO: not sure about this (shouldnt we indent the following?
+                classify(flow.terminated())
                 del current_flows[packet.getFwdID()]
                 flow = Flow(packet)
                 current_flows[packet.getFwdID()] = flow
 
             # check for fin flag
-            elif packet.getFINFlag():
+            elif packet.getFINFlag() or packet.getRSTFlag():
                 flow.new(packet, 'fwd')
                 classify(flow.terminated())
                 del current_flows[packet.getFwdID()]
@@ -99,10 +97,11 @@ def newPacket(p):
             if (packet.getTimestamp() - flow.getFlowStartTime()) > FlowTimeout:
                 classify(flow.terminated())
                 del current_flows[packet.getBwdID()]
+                del flow
                 flow = Flow(packet)
                 current_flows[packet.getFwdID()] = flow
 
-            elif packet.getFINFlag():
+            elif packet.getFINFlag() or packet.getRSTFlag():
                 flow.new(packet, 'bwd')
                 classify(flow.terminated())
                 del current_flows[packet.getBwdID()]
@@ -116,8 +115,11 @@ def newPacket(p):
             current_flows[packet.getFwdID()] = flow
             # current flows put id, (new) flow
 
+    except AttributeError:
+        # not IP or TCP
+        return
 
-    except Exception:
+    except:
         traceback.print_exc()
 
 
@@ -130,8 +132,6 @@ def live():
 
 def pcap(f):
     sniff(offline=f, prn=newPacket)
-    print('done')
-    print(len(current_flows.values()))
     for flow in current_flows.values():
         classify(flow.terminated())
 
