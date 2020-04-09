@@ -40,6 +40,7 @@ def classify(features):
     classification = [str(result[0])]
     if result != 'Benign':
         print(feature_string + classification)
+
     w.writerow(feature_string + classification)
 
     return feature_string + classification
@@ -146,7 +147,7 @@ def main(mode, pcap_file):
 
     classifier = RandomForestClassifier()
     classifier = classifier.fit(X, Y)
-
+    print(" Sniffing ".center(20, '*'))
     if mode == 0:
         live()
     else:

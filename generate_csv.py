@@ -60,59 +60,78 @@ def monday_labels(flow):
 def tuesday_labels(flow):
 
     ftp_start_time = datetime.datetime(2017,7,4,9,10).timestamp()
-    # ftp_end_time = datetime.datetime(2017,7,4,10,20).timestamp()
-    ssh_start_time = datetime.datetime(2017,7,4,14,0).timestamp()
-    # sh_end_time = datetime.datetime(2017,7,4,15,0).timestamp()
+    ftp_end_time = datetime.datetime(2017,7,4,10,30).timestamp()
+    ssh_start_time = datetime.datetime(2017,7,4,13,50).timestamp()
+    sh_end_time = datetime.datetime(2017,7,4,15,10).timestamp()
 
     p = flow.packetInfos[0]
     startTime = flow.getFlowStartTime()
     endTime = flow.flowLastSeen
 
-    #print(p.getSrc(), p.getDest(), startTime - timezone, ftp_start_time)
-    if p.getSrc() == victim_ip or p.getDest() == victim_ip:
-        if p.getSrc() == attacker_ip or p.getDest() == attacker_ip:
+    if p.getSrc() in attacker_ips or p.getDest() in attacker_ips:
+        if p.getSrc() in victim_ips or p.getDest() in victim_ips:
 
-            if (startTime - timezone) >= ftp_start_time and (endTime - timezone) < ssh_start_time:
+            if (startTime - timezone) >= ftp_start_time and (endTime - timezone) < ftp_end_time:
                 return 'FTP-Patator'
 
-            if (startTime - timezone) >= ssh_start_time:
+            if (startTime - timezone) >= ssh_start_time and (endTime - timezone) < sh_end_time:
                 return 'SSH-Patator'
 
     return 'Benign'
 
+
+
 def wednesday_labels(flow):
+
+    dos_start_time = datetime.datetime(2017, 7,5,9,40).timestamp()
+    dos_end_time = datetime.datetime(2017,7,5,11,30).timestamp()
+
     p = flow.packetInfos[0]
+    startTime = flow.getFlowStartTime()
+    endTime = flow.flowLastSeen
 
     if p.getSrc() in attacker_ips or p.getDest() in attacker_ips:
         if p.getSrc() in victim_ips or p.getDest() in victim_ips:
-            return 'DoS'
+            if (startTime - timezone) >= dos_start_time and (endTime - timezone) < dos_end_time:
+                return 'DoS'
+    return 'Benign'
 
 
 def thursday_labels(flow):
+    web_start_time = datetime.datetime(2017, 7, 6, 9, 10).timestamp()
+    web_end_time = datetime.datetime(2017, 7, 6, 10, 45).timestamp()
+
     p = flow.packetInfos[0]
+    startTime = flow.getFlowStartTime()
+    endTime = flow.flowLastSeen
 
     if p.getSrc() in attacker_ips or p.getDest() in attacker_ips:
         if p.getSrc() in victim_ips or p.getDest() in victim_ips:
-            return 'Web Attack'
+            if (startTime - timezone) >= web_start_time and (endTime - timezone) < web_end_time:
+                return 'Web Attack'
+    return 'Benign'
 
 
 def friday_morning_labels(flow):
+    bot_start_time = datetime.datetime(2017, 7, 7, 9, 55).timestamp()
+    bot_end_time = datetime.datetime(2017, 7, 7, 11, 10).timestamp()
+
     p = flow.packetInfos[0]
+    startTime = flow.getFlowStartTime()
+    endTime = flow.flowLastSeen
 
     if p.getSrc() in attacker_ips or p.getDest() in attacker_ips:
         if p.getSrc() in victim_ips or p.getDest() in victim_ips:
-                print('botnet')
-                return 'Botnet'
-
-    print('benign')
+            if (startTime - timezone) >= bot_start_time and (endTime - timezone) < bot_end_time:
+                    return 'Botnet'
     return 'Benign'
 
 def friday_afternoon_labels(flow):
-    portscan_start = datetime.datetime(2017,7,7,13,40).timestamp()
-    portscan_end = datetime.datetime(2017,7,7,15,00).timestamp()
+    portscan_start = datetime.datetime(2017,7,7,13,45).timestamp()
+    portscan_end = datetime.datetime(2017,7,7,15,40).timestamp()
 
-    ddos_start = datetime.datetime(2017,7,7,15,40,0).timestamp()
-    ddos_end = datetime.datetime(2017,7,7,16,30).timestamp()
+    ddos_start = datetime.datetime(2017,7,7,15,45,0).timestamp()
+    ddos_end = datetime.datetime(2017,7,7,16,25).timestamp()
 
     p = flow.packetInfos[0]
     startTime = flow.getFlowStartTime()
@@ -121,13 +140,9 @@ def friday_afternoon_labels(flow):
     if p.getSrc() in attacker_ips or p.getDest() in attacker_ips:
         if p.getSrc() in victim_ips or p.getDest() in victim_ips:
             if (startTime - timezone) >= portscan_start and (endTime - timezone) < portscan_end:
-                print('probe')
                 return 'Probe'
             if (startTime - timezone) >= ddos_start and (endTime - timezone) < ddos_end:
-                print('ddos')
                 return 'DDoS'
-
-    print('benign')
     return 'Benign'
 
 
@@ -174,6 +189,7 @@ def check_time(day, time):
 def newPacket(p):
     # for friday morn
     if not check_time('fri-mon',  p.time):
+        print('time done')
         return
     try:
         packet = PacketInfo()

@@ -8,9 +8,27 @@ from sklearn.model_selection import train_test_split
 
 
 def dataset():
+    path = 'ML/'
+    all_files = glob.glob(path + '/*.csv')
+    dataset1 = pd.concat((pd.read_csv(f, header=None) for f in all_files))
+
+    col_names = ['Destination_Port', 'Flow_Duration', 'Bwd_Packet_Length_Max',
+                 'Bwd_Packet_Length_Min', 'Bwd_Packet_Length_Mean',
+                 'Bwd_Packet_Length_Std', 'Flow_IAT_Mean', 'Flow_IAT_Std',
+                 'Flow_IAT_Max', 'Flow_IAT_Min', 'Fwd_IAT_Total', 'Fwd_IAT_Mean',
+                 'Fwd_IAT_Std', 'Fwd_IAT_Max', 'Fwd_IAT_Min', 'Bwd_IAT_Total',
+                 'Bwd_IAT_Mean', 'Bwd_IAT_Std', 'Bwd_IAT_Max', 'Bwd_IAT_Min',
+                 'Fwd_PSH_Flags', 'Fwd_Packets_s', 'Max_Packet_Length',
+                 'Packet_Length_Mean', 'Packet_Length_Std', 'Packet_Length_Variance',
+                 'FIN_Flag_Count', 'SYN_Flag_Count', 'PSH_Flag_Count', 'ACK_Flag_Count',
+                 'URG_Flag_Count', 'Average_Packet_Size', 'Avg_Bwd_Segment_Size',
+                 'Init_Win_bytes_forward', 'Init_Win_bytes_backward', 'Active_Min',
+                 'Idle_Mean', 'Idle_Std', 'Idle_Max', 'Idle_Min', 'Label']
+    dataset1.columns = col_names
+
     path = 'MachineLearningCVE'
     all_files = glob.glob(path + "/*.csv")
-    dataset = pd.concat((pd.read_csv(f, low_memory=False) for f in all_files))
+    dataset2 = pd.concat((pd.read_csv(f, low_memory=False) for f in all_files))
 
     col_names = ["Destination_Port",
                  "Flow_Duration",
@@ -92,7 +110,23 @@ def dataset():
                  "Idle_Min",
                  "Label"
                  ]
-    dataset.columns = col_names
+    dataset2.columns = col_names
+
+    dataset2 = dataset2[['Destination_Port', 'Flow_Duration', 'Bwd_Packet_Length_Max',
+                         'Bwd_Packet_Length_Min', 'Bwd_Packet_Length_Mean',
+                         'Bwd_Packet_Length_Std', 'Flow_IAT_Mean', 'Flow_IAT_Std',
+                         'Flow_IAT_Max', 'Flow_IAT_Min', 'Fwd_IAT_Total', 'Fwd_IAT_Mean',
+                         'Fwd_IAT_Std', 'Fwd_IAT_Max', 'Fwd_IAT_Min', 'Bwd_IAT_Total',
+                         'Bwd_IAT_Mean', 'Bwd_IAT_Std', 'Bwd_IAT_Max', 'Bwd_IAT_Min',
+                         'Fwd_PSH_Flags', 'Fwd_Packets_s', 'Max_Packet_Length',
+                         'Packet_Length_Mean', 'Packet_Length_Std', 'Packet_Length_Variance',
+                         'FIN_Flag_Count', 'SYN_Flag_Count', 'PSH_Flag_Count', 'ACK_Flag_Count',
+                         'URG_Flag_Count', 'Average_Packet_Size', 'Avg_Bwd_Segment_Size',
+                         'Init_Win_bytes_forward', 'Init_Win_bytes_backward', 'Active_Min',
+                         'Idle_Mean', 'Idle_Std', 'Idle_Max', 'Idle_Min', 'Label']]
+
+    dataset2 = dataset2.replace(['Heartbleed', 'Web Attack � Sql Injection', 'Infiltration'], np.nan)
+    dataset2 = dataset2.dropna()
     attack_group = {'BENIGN': 'Benign',
                     'DoS Hulk': 'DoS',
                     'PortScan': 'Probe',
@@ -103,75 +137,29 @@ def dataset():
                     'DoS slowloris': 'DoS',
                     'DoS Slowhttptest': 'DoS',
                     'Bot': 'Botnet',
-                    'Brute Force': 'Web Attack',
-                    'XSS': 'Web Attack'}
+                    'Web Attack � Brute Force': 'Web Attack',
+                    'Web Attack � XSS': 'Web Attack'}
+    dataset2['Label'] = dataset2.Label.map(lambda x: attack_group[x])
 
-    # drop null, inf, duplicate
+    result = pd.concat([dataset1, dataset2], axis=0, join='outer', ignore_index=False, keys=None,
+                       levels=None, names=None, verify_integrity=False, copy=True)
+    result = result.replace([np.inf, -np.inf], np.nan)
+    result = result.dropna()
 
-    dataset['Flow_Bytes_s'] = dataset['Flow_Bytes_s'].astype('float64')
-    dataset['Flow_Packets_s'] = dataset['Flow_Packets_s'].astype('float64')
-    dataset = dataset.loc[:, ~dataset.columns.duplicated()]
+    xs = result[['Destination_Port', 'Flow_Duration', 'Bwd_Packet_Length_Max',
+                         'Bwd_Packet_Length_Min', 'Bwd_Packet_Length_Mean',
+                         'Bwd_Packet_Length_Std', 'Flow_IAT_Mean', 'Flow_IAT_Std',
+                         'Flow_IAT_Max', 'Flow_IAT_Min', 'Fwd_IAT_Total', 'Fwd_IAT_Mean',
+                         'Fwd_IAT_Std', 'Fwd_IAT_Max', 'Fwd_IAT_Min', 'Bwd_IAT_Total',
+                         'Bwd_IAT_Mean', 'Bwd_IAT_Std', 'Bwd_IAT_Max', 'Bwd_IAT_Min',
+                         'Fwd_PSH_Flags', 'Fwd_Packets_s', 'Max_Packet_Length',
+                         'Packet_Length_Mean', 'Packet_Length_Std', 'Packet_Length_Variance',
+                         'FIN_Flag_Count', 'SYN_Flag_Count', 'PSH_Flag_Count', 'ACK_Flag_Count',
+                         'URG_Flag_Count', 'Average_Packet_Size', 'Avg_Bwd_Segment_Size',
+                         'Init_Win_bytes_forward', 'Init_Win_bytes_backward', 'Active_Min',
+                         'Idle_Mean', 'Idle_Std', 'Idle_Max', 'Idle_Min']]
 
-    dataset = dataset.replace([np.inf, -np.inf], np.nan)
-    dataset = dataset.dropna()
-
-    index_to_drop = dataset[(dataset['Label'] == 'Heartbleed') | (dataset['Label'] == 'Web Attack � Sql Injection') | (
-            dataset['Label'] == 'Infiltration')].index
-    dataset.drop(index_to_drop, inplace=True)
-    dataset.loc[dataset.Label == 'Web Attack � Brute Force', ['Label']] = 'Brute Force'
-    dataset.loc[dataset.Label == 'Web Attack � XSS', ['Label']] = 'XSS'
-
-    dataset['Label_Category'] = dataset['Label'].map(lambda x: attack_group[x])
-
-
-    features = ['Destination_Port',
-                'Flow_Duration',
-                'Fwd_Packet_Length_Min',
-                'Bwd_Packet_Length_Max',
-                'Bwd_Packet_Length_Min',
-                'Bwd_Packet_Length_Mean',
-                'Bwd_Packet_Length_Std',
-                'Flow_IAT_Mean',
-                'Flow_IAT_Std',
-                'Flow_IAT_Max',
-                'Flow_IAT_Min',
-                'Fwd_IAT_Total',
-                'Fwd_IAT_Mean',
-                'Fwd_IAT_Std',
-                'Fwd_IAT_Max',
-                'Fwd_IAT_Min',
-                'Bwd_IAT_Total',
-                'Bwd_IAT_Mean',
-                'Bwd_IAT_Std',
-                'Bwd_IAT_Max',
-                'Bwd_IAT_Min',
-                'Fwd_PSH_Flags',
-                'Fwd_Packets_s',
-                'Bwd_Packets_s',
-                'Min_Packet_Length',
-                'Max_Packet_Length',
-                'Packet_Length_Mean',
-                'Packet_Length_Std',
-                'Packet_Length_Variance',
-                'FIN_Flag_Count',
-                'SYN_Flag_Count',
-                'RST_Flag_Count',
-                'PSH_Flag_Count',
-                'ACK_Flag_Count',
-                'Average_Packet_Size',
-                'Avg_Bwd_Segment_Size',
-                'Init_Win_bytes_forward',
-                'Init_Win_bytes_backward',
-                'Active_Mean',
-                'Active_Std',
-                'Active_Max',
-                'Active_Min',
-                'Idle_Mean',
-                'Idle_Std',
-                'Idle_Max']
-    xs = dataset[features]
-    ys = dataset['Label_Category']
-
+    ys = result['Label']
     #normalise
     min_max_scaler = MinMaxScaler().fit(xs)
     xs = min_max_scaler.transform(xs)
