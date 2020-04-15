@@ -13,7 +13,7 @@ def main():
     mode = input("Enter s to sniff, or p for pcap analysis. Default will be to sniff traffic.")
     if mode == 'p':
         #f = input("Enter path to file")
-        f = 'PCAP/botnet-capture-20110818-bot-2.pcap'
+        f = 'PCAP/my_dos_hulk.pcap'
         snif.main(1, f)
     else:
         snif.main(0, '')

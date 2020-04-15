@@ -30,6 +30,7 @@ class PacketInfo:
 
         self.payload_bytes = 0
         self.header_bytes = 0
+        self.packet_size = 0
         self.win_bytes = 0
 
         self.fwd_id = ""
@@ -157,6 +158,15 @@ class PacketInfo:
 
     def getHeaderBytes(self):
         return self.header_bytes
+
+    def setPacketSize(self, p):
+        if p.haslayer(TCP):
+            self.packet_size = len(p[TCP])
+        if p.haslayer(UDP):
+            self.packet_size = len(p[UDP])
+
+    def getPacketSize(self):
+        return self.packet_size
 
     def setWinBytes(self, p):
         if p.haslayer(TCP):

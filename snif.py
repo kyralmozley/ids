@@ -63,6 +63,7 @@ def newPacket(p):
         packet.setRSTFlag(p)
         packet.setPayloadBytes(p)
         packet.setHeaderBytes(p)
+        packet.setPacketSize(p)
         packet.setWinBytes(p)
         packet.setFwdID()
         packet.setBwdID()

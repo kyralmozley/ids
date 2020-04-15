@@ -8,7 +8,8 @@ from sklearn.model_selection import train_test_split
 
 
 def dataset():
-    path = 'ML/'
+    '''
+    path = 'ML'
     all_files = glob.glob(path + '/*.csv')
     dataset1 = pd.concat((pd.read_csv(f, header=None) for f in all_files))
 
@@ -25,7 +26,7 @@ def dataset():
                  'Init_Win_bytes_forward', 'Init_Win_bytes_backward', 'Active_Min',
                  'Idle_Mean', 'Idle_Std', 'Idle_Max', 'Idle_Min', 'Label']
     dataset1.columns = col_names
-
+    '''
     path = 'MachineLearningCVE'
     all_files = glob.glob(path + "/*.csv")
     dataset2 = pd.concat((pd.read_csv(f, low_memory=False) for f in all_files))
@@ -141,12 +142,12 @@ def dataset():
                     'Web Attack � XSS': 'Web Attack'}
     dataset2['Label'] = dataset2.Label.map(lambda x: attack_group[x])
 
-    result = pd.concat([dataset1, dataset2], axis=0, join='outer', ignore_index=False, keys=None,
-                       levels=None, names=None, verify_integrity=False, copy=True)
-    result = result.replace([np.inf, -np.inf], np.nan)
-    result = result.dropna()
+    # result = pd.concat([dataset1, dataset2], axis=0, join='outer', ignore_index=False, keys=None,levels=None, names=None, verify_integrity=False, copy=True)
 
-    xs = result[['Destination_Port', 'Flow_Duration', 'Bwd_Packet_Length_Max',
+    dataset2 = dataset2.replace([np.inf, -np.inf], np.nan)
+    dataset2 = dataset2.dropna()
+
+    xs = dataset2[['Destination_Port', 'Flow_Duration', 'Bwd_Packet_Length_Max',
                          'Bwd_Packet_Length_Min', 'Bwd_Packet_Length_Mean',
                          'Bwd_Packet_Length_Std', 'Flow_IAT_Mean', 'Flow_IAT_Std',
                          'Flow_IAT_Max', 'Flow_IAT_Min', 'Fwd_IAT_Total', 'Fwd_IAT_Mean',
@@ -159,7 +160,7 @@ def dataset():
                          'Init_Win_bytes_forward', 'Init_Win_bytes_backward', 'Active_Min',
                          'Idle_Mean', 'Idle_Std', 'Idle_Max', 'Idle_Min']]
 
-    ys = result['Label']
+    ys = dataset2['Label']
     #normalise
     min_max_scaler = MinMaxScaler().fit(xs)
     xs = min_max_scaler.transform(xs)

@@ -22,7 +22,7 @@ class Flow:
         self.flowFeatures.setACKFlagCount(1 if packet.getACKFlag() else 0)
         self.flowFeatures.setURGFlagCount(1 if packet.getURGFlag() else 0)
 
-        self.flowFeatures.setAvgPacketSize(packet.getPayloadBytes())
+        self.flowFeatures.setAvgPacketSize(packet.getPacketSize())
         self.flowFeatures.setInitBytesFwd(packet.getWinBytes())
 
         self.flowLastSeen = packet.getTimestamp()
@@ -142,7 +142,8 @@ class Flow:
                 self.flowFeatures.setPacketLenStd(statistics.stdev(packet_lens))
                 self.flowFeatures.setPacketLenVar(statistics.variance(packet_lens))
 
-        self.flowFeatures.setAvgPacketSize(sum(packet_lens) / self.packet_count)
+        packet_sizes =[x.getPacketSize() for x in self.packetInfos]
+        self.flowFeatures.setAvgPacketSize(sum(packet_sizes) / self.packet_count)
 
         if self.bwd_packet_count != 0:
             self.flowFeatures.setAvgBwdSegmentSize(sum(bwd_packet_lens) / self.bwd_packet_count)
