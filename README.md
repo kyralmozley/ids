@@ -9,5 +9,8 @@ time classify whether or not the traffic is benign or adverse.
 
 Using a random forest classifier I achieved 99.91% accuracy and a 97.59% F1 Score. 
 
+The python notebook (main.ipynb) contains my initial investigation; preprocessing the data set, feature selection, evaulating a variety of different algorithms, and optimising hyperparameters. 
+
+The dissertation (Dissertation.pdf) discusses the motivation behind the research, what has previously been achieved, and what work I accomplished. 
 
 [1]: Iman Sharafaldin, Arash Habibi Lashkari, and Ali A. Ghorbani, “Toward Generating a New Intrusion Detection Dataset and Intrusion Traffic Characterization”, 4th International Conference on Information Systems Security and Privacy (ICISSP), Portugal, January 2018
